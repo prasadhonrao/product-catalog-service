@@ -6,6 +6,6 @@ public class ProductCatalogServiceContext : DbContext
       : base(options)
   {
   }
-
+    
   public DbSet<Category> Category { get; set; } = default!;
 }

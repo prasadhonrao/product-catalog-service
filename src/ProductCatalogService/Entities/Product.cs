@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ProductCatalogService.Entities;
 
@@ -6,10 +7,10 @@ public class Product
 {
 
   [Key]
-  public required string Id { get; set; }
+  public string Id { get; set; } = null!;
 
   [Required(ErrorMessage = "Product name is required"), MaxLength(100)]
-  public required string ProductName { get; set; } 
+  public required string ProductName { get; set; }
 
   public string ProductDescription { get; set; } = string.Empty;
   public decimal Price { get; set; }
@@ -21,9 +22,9 @@ public class Product
   public ICollection<Specification> Specifications { get; set; } = null!;
   public ICollection<Image> Images { get; set; } = null!;
   public ICollection<Variant> Variants { get; set; } = null!;
-  public ICollection<string> RelatedProducts { get; set; } = null!;
+  public ICollection<int> RelatedProducts { get; set; } = null!;
   public ICollection<Review> Reviews { get; set; } = null!;
   public ICollection<Rating> Ratings { get; set; } = null!;
-  public AggregateRating AggregateRating { get; set; } = null!;
-  public AggregateReview AggregateReview { get; set; } = null!;
+  public decimal AggregateRating { get; set; } 
+  public decimal AggregateReview { get; set; } 
 }

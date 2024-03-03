@@ -1,6 +1,4 @@
-﻿using ProductCatalogService.Entities;
-
-namespace ProductCatalogService.Models;
+﻿namespace ProductCatalogService.Models;
 
 public class ProductModel
 {
@@ -9,16 +7,29 @@ public class ProductModel
   public string ProductDescription { get; set; } = string.Empty;
   public decimal Price { get; set; }
   public int Quantity { get; set; }
-  public string Status { get; set; } = string.Empty;
-  public string InventoryStatus { get; set; } = string.Empty;
+  public Status Status { get; set; } 
+  public InventoryStatus InventoryStatus { get; set; }
   public Seo Seo { get; set; } = null!;
-  public ICollection<Category> Categories { get; set; } = null!; 
+  public ICollection<Category> Categories { get; set; } = null!;
   public ICollection<Specification> Specifications { get; set; } = null!;
   public ICollection<Image> Images { get; set; } = null!;
   public ICollection<Variant> Variants { get; set; } = null!;
   public ICollection<string> RelatedProducts { get; set; } = null!;
   public ICollection<Review> Reviews { get; set; } = null!;
   public ICollection<Rating> Ratings { get; set; } = null!;
-  public AggregateRating AggregateRating { get; set; } = null!;
-  public AggregateReview AggregateReview { get; set; } = null!;
+  public double AggregateRating
+  {
+    get
+    {
+      return Ratings.Any() ? Ratings.Average(r => r.RatingValue) : 0;
+    }
+  }
+
+  public double ReviewCount
+  {
+    get
+    {
+      return Reviews.Count;
+    }
+  }
 }

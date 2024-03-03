@@ -1,9 +1,6 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using ProductCatalogService.Data;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ProductCatalogServiceContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("ProductCatalogServiceContext") ?? throw new InvalidOperationException("Connection string 'ProductCatalogServiceContext' not found.")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnectionString") ?? throw new InvalidOperationException("Connection string 'ProductCatalogServiceContext' not found.")));
 
 // Add services to the container.
 builder.Services.AddControllers();
