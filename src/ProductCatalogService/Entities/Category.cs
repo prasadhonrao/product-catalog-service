@@ -17,4 +17,10 @@ public class Category
   {
     Id = Guid.NewGuid();
   }
+
+  public Category(string name, string description): this()
+  {
+    Name = name;
+    Description = description;
+  }
 }

@@ -1,6 +1,4 @@
 ﻿using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.JsonPatch.Adapters;
-using ProductCatalogService.Entities;
 using ProductCatalogService.Models;
 using System.Reflection;
 
@@ -12,31 +10,51 @@ namespace ProductCatalogService.Controllers;
 public class CategoriesController : ControllerBase
 {
   private readonly ProductCatalogServiceContext context;
+  private readonly ILogger<CategoriesController> logger;
 
-  public CategoriesController(ProductCatalogServiceContext context)
+  public CategoriesController(ProductCatalogServiceContext context, ILogger<CategoriesController> logger)
   {
-    this.context = context;
+    this.context = context ?? throw new ArgumentNullException(nameof(context)) ;
+    this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
   }
 
   // GET: api/Categories
   [HttpGet]
   public async Task<ActionResult<IEnumerable<Category>>> GetCategory()
   {
-    return await context.Category.ToListAsync();
+    try
+    {
+      logger.LogInformation("Getting all categories");
+      return await context.Category.ToListAsync();
+    }
+    catch (Exception ex)
+    {
+      logger.LogError(ex,"An error occurred while getting all categories.");
+      return StatusCode(500, "An error occurred while getting all categories. Please try again later.");
+    }
   }
 
   // GET: api/Categories/5
   [HttpGet("{id}")]
   public async Task<ActionResult<Category>> GetCategory(Guid id)
   {
-    var category = await context.Category.FindAsync(id);
-
-    if (category == null)
+    try
     {
-      return NotFound();
-    }
+      logger.LogInformation($"Getting category with id: {id}");
+      var category = await context.Category.FindAsync(id);
 
-    return category;
+      if (category == null)
+      {
+        return NotFound();
+      }
+
+      return category;
+    }
+    catch(Exception ex)
+    {
+      logger.LogError(ex, "An error occurred while getting the category.");
+      return StatusCode(500, "An error occurred while getting the category. Please try again later.");
+    }
   }
 
   // PUT: api/Categories/5
@@ -44,6 +62,8 @@ public class CategoriesController : ControllerBase
   [HttpPut("{id}")]
   public async Task<IActionResult> PutCategory(Guid id, CategoryModel categoryModel)
   {
+    logger.LogInformation($"Updating category with id: {id}");
+
     // Check if the Category Guid is valid
     ValidateId(id);
 
@@ -51,17 +71,20 @@ public class CategoriesController : ControllerBase
     var category = await context.Category.FindAsync(id);
     if (category == null)
     {
+      logger.LogError($"Category with id: {id} not found");
       return NotFound();
     }
 
     // Check if the model is valid
     if (categoryModel == null)
     {
+      logger.LogError("Invalid category model");
       return BadRequest();
     }
 
     if (!ModelState.IsValid)
     {
+      logger.LogError("Invalid category model");
       return BadRequest(ModelState);
     }
 
@@ -84,6 +107,7 @@ public class CategoriesController : ControllerBase
       }
       else
       {
+        logger.LogError("An error occurred while updating the category.");
         throw;
       }
     }
@@ -96,14 +120,18 @@ public class CategoriesController : ControllerBase
   [HttpPost]
   public async Task<ActionResult<Category>> PostCategory(CategoryModel categoryModel)
   {
+    logger.LogInformation("Creating a new category");
+
     // Check if the model is valid
     if (categoryModel == null)
     {
+      logger.LogError("Invalid category model");
       return BadRequest();
     }
 
     if (!ModelState.IsValid)
     {
+      logger.LogError("Invalid category model");
       return BadRequest(ModelState);
     }
 
@@ -119,7 +147,7 @@ public class CategoriesController : ControllerBase
       context.Category.Add(category);
       await context.SaveChangesAsync();
     }
-    catch (DbUpdateException)
+    catch (DbUpdateException dbex)
     {
       if (CategoryExists(category.Id))
       {
@@ -127,8 +155,14 @@ public class CategoriesController : ControllerBase
       }
       else
       {
+        logger.LogError(dbex, "An error occurred while creating the category.");
         throw;
       }
+    }
+    catch (Exception ex)
+    {
+      logger.LogError(ex, "An error occurred while creating a category");
+      return StatusCode(500, "An error occurred while creating a category. Please try again later.");
     }
 
     return CreatedAtAction(nameof(GetCategory), new { id = category.Id }, category);
@@ -140,6 +174,8 @@ public class CategoriesController : ControllerBase
   {
     try
     {
+      logger.LogInformation($"Patching category with id: {id}");
+
       // Check if the Category Guid is valid
       ValidateId(id);
 
@@ -147,17 +183,20 @@ public class CategoriesController : ControllerBase
       var category = await context.Category.FindAsync(id);
       if (category == null)
       {
+        logger.LogError($"Category with id: {id} not found");
         return NotFound();
       }
 
       // Check if the model is valid
       if (patchDocument == null)
       {
+        logger.LogError("Invalid patch document");
         return BadRequest();
       }
 
       if (!ModelState.IsValid)
       {
+        logger.LogError("Invalid patch document");
         return BadRequest(ModelState);
       }
 
@@ -175,11 +214,13 @@ public class CategoriesController : ControllerBase
 
       if (!ModelState.IsValid)
       {
+        logger.LogError("Invalid patch document");
         return BadRequest(ModelState);
       }
 
       if (!TryValidateModel(patchModel))
       {
+        logger.LogError("Invalid patch document");
         return BadRequest(ModelState);
       }
 
@@ -193,8 +234,9 @@ public class CategoriesController : ControllerBase
 
       return NoContent();
     }
-    catch 
+    catch (Exception ex)
     {
+      logger.LogError(ex, "An error occurred while patching the category.");
       return StatusCode(500, "An error occurred while patching the category. Please try again later.");
     }
   }
@@ -214,9 +256,10 @@ public class CategoriesController : ControllerBase
       context.Category.Remove(category);
       await context.SaveChangesAsync();
     }
-    catch (DbUpdateException)
+    catch (Exception ex)
     {
-      throw;
+      logger.LogError(ex,"An error occurred while deleting the category.");
+      return StatusCode(500, "An error occurred while patching the category. Please try again later.");
     }
 
     return NoContent();
