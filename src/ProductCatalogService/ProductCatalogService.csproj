@@ -34,4 +34,8 @@
 		<None Include="C:\git\aspnet-product-catalog-service\src\ProductCatalogService\.editorconfig" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Migrations\" />
+	</ItemGroup>
+
 </Project>

@@ -25,7 +25,7 @@ public class CategoriesController : ControllerBase
     try
     {
       logger.LogInformation("Getting all categories");
-      return await context.Category.ToListAsync();
+      return await context.Categories.ToListAsync();
     }
     catch (Exception ex)
     {
@@ -41,7 +41,7 @@ public class CategoriesController : ControllerBase
     try
     {
       logger.LogInformation($"Getting category with id: {id}");
-      var category = await context.Category.FindAsync(id);
+      var category = await context.Categories.FindAsync(id);
 
       if (category == null)
       {
@@ -68,7 +68,7 @@ public class CategoriesController : ControllerBase
     ValidateId(id);
 
     // Check if category exists in the database
-    var category = await context.Category.FindAsync(id);
+    var category = await context.Categories.FindAsync(id);
     if (category == null)
     {
       logger.LogError($"Category with id: {id} not found");
@@ -136,15 +136,13 @@ public class CategoriesController : ControllerBase
     }
 
     // Map the model to the entity
-    var category = new Category
-    {
-      Name = categoryModel.Name,
-      Description = categoryModel.Description
-    };
+    var category = new Category(description: categoryModel.Description,
+      name: categoryModel.Name);
+    
 
     try
     {
-      context.Category.Add(category);
+      context.Categories.Add(category);
       await context.SaveChangesAsync();
     }
     catch (DbUpdateException dbex)
@@ -180,7 +178,7 @@ public class CategoriesController : ControllerBase
       ValidateId(id);
 
       // Check if category exists in the database
-      var category = await context.Category.FindAsync(id);
+      var category = await context.Categories.FindAsync(id);
       if (category == null)
       {
         logger.LogError($"Category with id: {id} not found");
@@ -201,10 +199,10 @@ public class CategoriesController : ControllerBase
       }
 
       var patchModel = new CategoryModel
-      {
-        Name = category.Name,
-        Description = category.Description
-      };
+      (
+        category.Name,
+        category.Description
+      );
 
       // Apply the patch operations to the patchModel
       patchDocument.ApplyTo(patchModel, error =>
@@ -245,7 +243,7 @@ public class CategoriesController : ControllerBase
   [HttpDelete("{id}")]
   public async Task<IActionResult> DeleteCategory(Guid id)
   {
-    var category = await context.Category.FindAsync(id);
+    var category = await context.Categories.FindAsync(id);
     if (category == null)
     {
       return NotFound();
@@ -253,7 +251,7 @@ public class CategoriesController : ControllerBase
 
     try
     {
-      context.Category.Remove(category);
+      context.Categories.Remove(category);
       await context.SaveChangesAsync();
     }
     catch (Exception ex)
@@ -267,7 +265,7 @@ public class CategoriesController : ControllerBase
 
   private bool CategoryExists(Guid id)
   {
-    return context.Category.Any(e => e.Id == id);
+    return context.Categories.Any(e => e.Id == id);
   }
 
   private void ValidateId(Guid id)
