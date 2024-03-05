@@ -18,18 +18,42 @@ public class CategoriesController : ControllerBase
     this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
   }
 
-  // GET: api/Categories
   [HttpGet]
-  public async Task<ActionResult<IEnumerable<Category>>> GetCategory()
+  public async Task<ActionResult<IEnumerable<CategoryModel>>> GetCategories([FromQuery] bool includeProducts = false)
   {
     try
     {
       logger.LogInformation("Getting all categories");
-      return await context.Categories.ToListAsync();
+      var query = context.Categories.AsQueryable();
+
+      if (includeProducts)
+      {
+        query = query.Include(c => c.Products);
+      }
+
+      var categories = await query.ToListAsync();
+
+      var categoryModels = categories.Select(c => new CategoryModel
+      {
+        Id = c.Id,
+        Name = c.Name,
+        Description = c.Description,
+        Products = includeProducts ? c.Products.Select(p => new BasicProductModel
+        {
+          Id = p.Id,
+          ProductName = p.ProductName,
+          ProductDescription = p.ProductDescription,
+          Price = p.Price,
+          Quantity = p.Quantity 
+        }).ToList() : null
+        
+      }).ToList();
+
+      return Ok(categoryModels);
     }
     catch (Exception ex)
     {
-      logger.LogError(ex,"An error occurred while getting all categories.");
+      logger.LogError(ex, "An error occurred while getting all categories.");
       return StatusCode(500, "An error occurred while getting all categories. Please try again later.");
     }
   }
@@ -198,11 +222,8 @@ public class CategoriesController : ControllerBase
         return BadRequest(ModelState);
       }
 
-      var patchModel = new CategoryModel
-      (
-        category.Name,
-        category.Description
-      );
+      var patchModel = new CategoryModel { Name = category.Name, Description = category.Description };
+        
 
       // Apply the patch operations to the patchModel
       patchDocument.ApplyTo(patchModel, error =>

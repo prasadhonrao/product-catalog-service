@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace ProductCatalogService.Entities;
 
@@ -17,6 +18,7 @@ public class Product
   public string Status { get; set; } = string.Empty;
   public string InventoryStatus { get; set; } = string.Empty;
   public Seo Seo { get; set; } = null!;
+  [JsonIgnore]
   public ICollection<Category>? Categories { get; set; }
   public ICollection<Specification> Specifications { get; set; } = null!;
   public ICollection<Image> Images { get; set; } = null!;
