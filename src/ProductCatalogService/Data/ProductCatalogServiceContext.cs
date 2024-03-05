@@ -1,4 +1,6 @@
-﻿namespace ProductCatalogService.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using ProductCatalogService.Models;
+namespace ProductCatalogService.Data;
 
 public class ProductCatalogServiceContext : DbContext
 {
@@ -15,7 +17,7 @@ public class ProductCatalogServiceContext : DbContext
     // Define many-to-many relationship between Product and Category
     modelBuilder.Entity<ProductRelation>()
       .HasOne(pr => pr.Product)
-      .WithMany(p => p.ProductRelations)
+      .WithMany(p => p.RelatedProducts)
       .HasForeignKey(pr => pr.ProductId);
 
     modelBuilder.Entity<ProductRelation>()
@@ -34,5 +36,4 @@ public class ProductCatalogServiceContext : DbContext
       .HasPrecision(2, 1);
    
   }
-
 }

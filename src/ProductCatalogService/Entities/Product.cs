@@ -23,7 +23,7 @@ public class Product
   public ICollection<Specification> Specifications { get; set; } = null!;
   public ICollection<Image> Images { get; set; } = null!;
   public ICollection<Variant> Variants { get; set; } = null!;
-  public ICollection<ProductRelation>? ProductRelations { get; set; }
+  public HashSet<ProductRelation> RelatedProducts { get; set; } = new();
   public ICollection<Review>? Reviews { get; set; }
   public ICollection<Rating>? Ratings { get; set; }
   public decimal AggregateRating { get; set; }

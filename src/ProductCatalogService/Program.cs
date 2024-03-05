@@ -11,9 +11,10 @@ ConfigureLogging(builder);
 // Add services to the container.
 builder.Services.AddDbContext<ProductCatalogServiceContext>(options =>
                               options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnectionString") ?? throw new InvalidOperationException("Connection string 'ProductCatalogServiceContext' not found.")));
-builder.Services.AddControllers().AddJsonOptions(x =>
-       x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve
-   );
+builder.Services.AddControllers();
+//builder.Services.AddControllers().AddJsonOptions(x =>
+//       x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve
+//   );
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<DataInitializerService>();

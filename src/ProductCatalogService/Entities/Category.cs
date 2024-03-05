@@ -14,7 +14,7 @@ public class Category
 
   [Required(ErrorMessage = "Category description is required"), MaxLength(100, ErrorMessage = "Description should be less than 100 characters")]
   public string Description { get; set; } = null!;
-  public ICollection<Product> Products { get; set; } = new HashSet<Product>();
+  public HashSet<Product> Products { get; set; } = new();
 
   public Category()
   {
