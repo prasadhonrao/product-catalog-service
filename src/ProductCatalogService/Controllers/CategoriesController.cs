@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.JsonPatch;
 using ProductCatalogService.Models;
-using System.Reflection;
-
+using ProductCatalogService.Repositories;
 
 namespace ProductCatalogService.Controllers;
 
@@ -9,138 +8,54 @@ namespace ProductCatalogService.Controllers;
 [ApiController]
 public class CategoriesController : ControllerBase
 {
-  private readonly ProductCatalogServiceContext context;
   private readonly ILogger<CategoriesController> logger;
+  private readonly ICategoryRepository repository;
 
-  public CategoriesController(ProductCatalogServiceContext context, ILogger<CategoriesController> logger)
+  public CategoriesController(ICategoryRepository repository, ILogger<CategoriesController> logger)
   {
-    this.context = context ?? throw new ArgumentNullException(nameof(context)) ;
+    this.repository = repository ?? throw new ArgumentNullException(nameof(repository));
     this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
   }
 
   [HttpGet]
   public async Task<ActionResult<IEnumerable<CategoryModel>>> GetCategories([FromQuery] bool includeProducts = false)
   {
-    try
+
+    logger.LogInformation("Getting all categories");
+    var categories = await repository.GetCategories(includeProducts);
+
+    var categoryModels = categories.Select(category => new CategoryModel
     {
-      logger.LogInformation("Getting all categories");
-      var query = context.Categories.AsQueryable();
-
-      if (includeProducts)
+      Id = category.Id,
+      Name = category.Name,
+      Description = category.Description,
+      Products = includeProducts ? category.Products.Select(product => new BasicProductModel
       {
-        query = query.Include(c => c.Products);
-      }
-
-      var categories = await query.ToListAsync();
-
-      var categoryModels = categories.Select(c => new CategoryModel
-      {
-        Id = c.Id,
-        Name = c.Name,
-        Description = c.Description,
-        Products = includeProducts ? c.Products.Select(p => new BasicProductModel
-        {
-          Id = p.Id,
-          ProductName = p.ProductName,
-          ProductDescription = p.ProductDescription,
-          Price = p.Price,
-          Quantity = p.Quantity 
+        Id = product.Id,
+        ProductName = product.ProductName,
+        ProductDescription = product.ProductDescription,
+        Price = product.Price,
+        Quantity = product.Quantity
         }).ToList() : null
-        
-      }).ToList();
+    });
 
-      return Ok(categoryModels);
-    }
-    catch (Exception ex)
-    {
-      logger.LogError(ex, "An error occurred while getting all categories.");
-      return StatusCode(500, "An error occurred while getting all categories. Please try again later.");
-    }
+    return Ok(categoryModels);
   }
 
-  // GET: api/Categories/5
-  [HttpGet("{id}")]
-  public async Task<ActionResult<Category>> GetCategory(Guid id)
+  [HttpGet("{id:guid}")]
+  public async Task<ActionResult<CategoryModel>> GetCategory(Guid id)
   {
-    try
-    {
-      logger.LogInformation($"Getting category with id: {id}");
-      var category = await context.Categories.FindAsync(id);
+    logger.LogInformation($"Getting category with id: {id}");
+    var category = await repository.GetCategory(id);
 
-      if (category == null)
-      {
-        return NotFound();
-      }
-
-      return category;
-    }
-    catch(Exception ex)
-    {
-      logger.LogError(ex, "An error occurred while getting the category.");
-      return StatusCode(500, "An error occurred while getting the category. Please try again later.");
-    }
-  }
-
-  // PUT: api/Categories/5
-  // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-  [HttpPut("{id}")]
-  public async Task<IActionResult> PutCategory(Guid id, CategoryModel categoryModel)
-  {
-    logger.LogInformation($"Updating category with id: {id}");
-
-    // Check if the Category Guid is valid
-    ValidateId(id);
-
-    // Check if category exists in the database
-    var category = await context.Categories.FindAsync(id);
     if (category == null)
     {
-      logger.LogError($"Category with id: {id} not found");
       return NotFound();
     }
 
-    // Check if the model is valid
-    if (categoryModel == null)
-    {
-      logger.LogError("Invalid category model");
-      return BadRequest();
-    }
-
-    if (!ModelState.IsValid)
-    {
-      logger.LogError("Invalid category model");
-      return BadRequest(ModelState);
-    }
-
-    // Map the model to the entity
-    category.Name = categoryModel.Name;
-    category.Description = categoryModel.Description;
-
-    // Update the entity
-    context.Entry(category).State = EntityState.Modified;
-
-    try
-    {
-      await context.SaveChangesAsync();
-    }
-    catch (DbUpdateConcurrencyException)
-    {
-      if (!CategoryExists(id))
-      {
-        return NotFound();
-      }
-      else
-      {
-        logger.LogError("An error occurred while updating the category.");
-        throw;
-      }
-    }
-
-    return NoContent();
+    return Ok(category);
   }
 
-  // POST: api/Categories
-  // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
   [HttpPost]
   public async Task<ActionResult<Category>> PostCategory(CategoryModel categoryModel)
   {
@@ -161,226 +76,121 @@ public class CategoriesController : ControllerBase
 
     // Map the model to the entity
     var category = new Category(description: categoryModel.Description,
-      name: categoryModel.Name);
-    
+                                name: categoryModel.Name);
 
-    try
-    {
-      context.Categories.Add(category);
-      await context.SaveChangesAsync();
-    }
-    catch (DbUpdateException dbex)
-    {
-      if (CategoryExists(category.Id))
-      {
-        return Conflict();
-      }
-      else
-      {
-        logger.LogError(dbex, "An error occurred while creating the category.");
-        throw;
-      }
-    }
-    catch (Exception ex)
-    {
-      logger.LogError(ex, "An error occurred while creating a category");
-      return StatusCode(500, "An error occurred while creating a category. Please try again later.");
-    }
-
+    await repository.AddCategory(category);
     return CreatedAtAction(nameof(GetCategory), new { id = category.Id }, category);
   }
 
-  // PATCH: api/Categories/5
-  [HttpPatch("{id}")]
-  public async Task<IActionResult> PatchCategory(Guid id, JsonPatchDocument<CategoryModel> patchDocument)
+  [HttpPut("{id:guid}")]
+  public async Task<IActionResult> PutCategory(Guid id, CategoryModel categoryModel)
   {
-    try
+    logger.LogInformation($"Updating category with id: {id}");
+    // Check if the Category Guid is valid
+    ValidateGuid(id);
+
+    // Check if the model is valid
+    if (categoryModel == null)
     {
-      logger.LogInformation($"Patching category with id: {id}");
-
-      // Check if the Category Guid is valid
-      ValidateId(id);
-
-      // Check if category exists in the database
-      var category = await context.Categories.FindAsync(id);
-      if (category == null)
-      {
-        logger.LogError($"Category with id: {id} not found");
-        return NotFound();
-      }
-
-      // Check if the model is valid
-      if (patchDocument == null)
-      {
-        logger.LogError("Invalid patch document");
-        return BadRequest();
-      }
-
-      if (!ModelState.IsValid)
-      {
-        logger.LogError("Invalid patch document");
-        return BadRequest(ModelState);
-      }
-
-      var patchModel = new CategoryModel { Name = category.Name, Description = category.Description };
-        
-
-      // Apply the patch operations to the patchModel
-      patchDocument.ApplyTo(patchModel, error =>
-      {
-        ModelState.AddModelError("", error.ErrorMessage);
-      });
-
-      if (!ModelState.IsValid)
-      {
-        logger.LogError("Invalid patch document");
-        return BadRequest(ModelState);
-      }
-
-      if (!TryValidateModel(patchModel))
-      {
-        logger.LogError("Invalid patch document");
-        return BadRequest(ModelState);
-      }
-
-      // Update the category with the patched values
-      category.Name = patchModel.Name;
-      category.Description = patchModel.Description;
-
-      // Save the changes to the database
-      context.Entry(category).State = EntityState.Modified;
-      await context.SaveChangesAsync();
-
-      return NoContent();
+      logger.LogError("Invalid category model");
+      return BadRequest();
     }
-    catch (Exception ex)
+
+    if (!ModelState.IsValid)
     {
-      logger.LogError(ex, "An error occurred while patching the category.");
-      return StatusCode(500, "An error occurred while patching the category. Please try again later.");
+      logger.LogError("Invalid category model");
+      return BadRequest(ModelState);
     }
+
+    // Map the model to the entity
+    var category = new Category
+    {
+      Name = categoryModel.Name,
+      Description = categoryModel.Description
+    };
+
+    // Call the repository method to update the category
+    await repository.UpdateCategory(id, category);
+    return NoContent();
   }
 
-  // DELETE: api/Categories/5
-  [HttpDelete("{id}")]
-  public async Task<IActionResult> DeleteCategory(Guid id)
+  [HttpPatch("{id:guid}")]
+  public async Task<IActionResult> PatchCategory(Guid id, JsonPatchDocument<CategoryModel> patchDocument)
   {
-    var category = await context.Categories.FindAsync(id);
+
+    logger.LogInformation($"Patching category with id: {id}");
+
+    // Check if the Category Guid is valid
+    ValidateGuid(id);
+
+    // Check if the model is valid
+    if (patchDocument == null)
+    {
+      logger.LogError("Invalid patch document");
+      return BadRequest();
+    }
+
+    if (!ModelState.IsValid)
+    {
+      logger.LogError("Invalid patch document");
+      return BadRequest(ModelState);
+    }
+
+    // Get the category from the repository
+    var category = await repository.GetCategory(id);
     if (category == null)
     {
+      logger.LogError($"Category with id: {id} not found");
       return NotFound();
     }
 
-    try
+    var patchModel = new CategoryModel { Name = category.Name, Description = category.Description };
+
+    // Apply the patch operations to the patchModel
+    patchDocument.ApplyTo(patchModel, error =>
     {
-      context.Categories.Remove(category);
-      await context.SaveChangesAsync();
-    }
-    catch (Exception ex)
+      ModelState.AddModelError("", error.ErrorMessage);
+    });
+
+    if (!ModelState.IsValid)
     {
-      logger.LogError(ex,"An error occurred while deleting the category.");
-      return StatusCode(500, "An error occurred while patching the category. Please try again later.");
+      logger.LogError("Invalid patch document");
+      return BadRequest(ModelState);
     }
+
+    if (!TryValidateModel(patchModel))
+    {
+      logger.LogError("Invalid patch document");
+      return BadRequest(ModelState);
+    }
+
+    // Update the category with the patched values
+    category.Name = patchModel.Name;
+    category.Description = patchModel.Description;
+
+    await repository.PatchCategory(id, category);
 
     return NoContent();
   }
 
-  private bool CategoryExists(Guid id)
+  [HttpDelete("{id:guid}")]
+  public async Task<IActionResult> DeleteCategory(Guid id)
   {
-    return context.Categories.Any(e => e.Id == id);
+    logger.LogInformation($"Deleting category with id: {id}");
+
+    // Check if the Category Guid is valid
+    ValidateGuid(id);
+
+    await repository.DeleteCategory(id);
+
+    return NoContent();
   }
 
-  private void ValidateId(Guid id)
+  private void ValidateGuid(Guid id)
   {
     if (id == Guid.Empty)
     {
       throw new ArgumentException($"Invalid category id: {id}");
     }
-  }
-
-  private void ApplyPatchOperation(CategoryModel patchModel, string op, string path, string value)
-  {
-    var propertyPath = path.TrimStart('/');
-    var propertyNames = propertyPath.Split('/');
-
-    var targetType = typeof(CategoryModel);
-    var targetProperty = GetPropertyInHierarchy(targetType, propertyNames[0], ignoreCase: true);
-    if (targetProperty != null)
-    {
-      switch (op.ToLowerInvariant())
-      {
-        case "add":
-        case "replace":
-          var valueToSet = Convert.ChangeType(value, targetProperty.PropertyType);
-          targetProperty.SetValue(patchModel, valueToSet);
-          break;
-
-        case "remove":
-          targetProperty.SetValue(patchModel, null);
-          break;
-
-        case "copy":
-          var sourceProperty = GetPropertyInHierarchy(targetType, value, ignoreCase: true);
-
-          if (sourceProperty != null)
-          {
-            var sourceValue = sourceProperty.GetValue(patchModel);
-            targetProperty.SetValue(patchModel, sourceValue);
-          }
-          else
-          {
-            throw new ArgumentException($"Invalid source property {value} for copy operation.", nameof(value));
-          }
-          break;
-
-        case "move":
-          var sourceProp = GetPropertyInHierarchy(targetType, value, ignoreCase: true);
-
-          if (sourceProp != null)
-          {
-            var sourceValue = sourceProp.GetValue(patchModel);
-            targetProperty.SetValue(patchModel, sourceValue);
-            sourceProp.SetValue(patchModel, null);
-          }
-          else
-          {
-            throw new ArgumentException($"Invalid source property {value} for move operation.", nameof(value));
-          }
-          break;
-
-        case "test":
-          var expectedValue = Convert.ChangeType(value, targetProperty.PropertyType);
-          var currentValue = targetProperty.GetValue(patchModel);
-
-          if (!Equals(currentValue, expectedValue))
-          {
-            throw new ArgumentException($"Test failed for property {path}.", nameof(path));
-          }
-          break;
-
-        default:
-          throw new ArgumentException($"Invalid operation {op}.", nameof(op));
-      }
-    }
-    else
-    {
-      throw new ArgumentException($"Invalid property {path}", nameof(path));
-    }
-  }
-
-  private PropertyInfo GetPropertyInHierarchy(Type targetType, string propertyName, bool ignoreCase)
-  {
-    // Search for the property in the inheritance hierarchy
-    var bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
-    if (ignoreCase)
-    {
-      bindingFlags |= BindingFlags.IgnoreCase;
-    }
-
-    var property = targetType.GetProperty(propertyName, bindingFlags);
-    if (property == null && targetType.BaseType != null)
-    {
-      return GetPropertyInHierarchy(targetType.BaseType, propertyName, ignoreCase);
-    }
-    return property!;
   }
 }

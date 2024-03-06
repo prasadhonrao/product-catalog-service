@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Hosting;
 using ProductCatalogService;
+using ProductCatalogService.Middleware;
+using ProductCatalogService.Repositories;
 using Serilog;
 using Serilog.Sinks.SystemConsole.Themes;
 using System.Text.Json.Serialization;
@@ -18,10 +20,15 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<DataInitializerService>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Host.UseSerilog();
 
 
 var app = builder.Build();
+
+// Register exception handling middleware
+app.UseMiddleware<ExceptionMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
   app.UseSwagger();
