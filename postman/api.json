@@ -527,18 +527,41 @@
 					"response": []
 				},
 				{
+					"name": "Get Categories With Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/categories?includeProducts=true",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"categories"
+							],
+							"query": [
+								{
+									"key": "includeProducts",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Get Category",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/categories/1",
+							"raw": "{{base_url}}/categories/4f273a58-3de7-4564-e9fe-08dc3d0b31fb",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"categories",
-								"1"
+								"4f273a58-3de7-4564-e9fe-08dc3d0b31fb"
 							]
 						}
 					},
@@ -571,7 +594,7 @@
 					"response": []
 				},
 				{
-					"name": "Update Category",
+					"name": "Update Category Invalid Guid",
 					"request": {
 						"method": "PUT",
 						"header": [],
@@ -585,26 +608,26 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/categories/1",
+							"raw": "{{base_url}}/categories/xxx",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"categories",
-								"1"
+								"xxx"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Patch Category One Property",
+					"name": "Update Category Invalid Data Copy",
 					"request": {
-						"method": "PATCH",
+						"method": "PUT",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "[\n    {\n        \"op\": \"remove\",\n        \"path\": \"/Description\"\n    }\n]",
+							"raw": "{\n  \"name\": \"Test Category 1\",\n  \"description\": \"Test Description 1\"\n}\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -612,13 +635,73 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/categories/1",
+							"raw": "{{base_url}}/categories/11",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"categories",
-								"1"
+								"11"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Category Valid Data",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test Category 11\",\n  \"description\": \"Test Description 11\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/categories/4435c0fb-598f-4121-ea01-08dc3d0b31fb",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"categories",
+								"4435c0fb-598f-4121-ea01-08dc3d0b31fb"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Patch Category Name",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json-patch+json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\n    {\n        \"op\": \"replace\",\n        \"path\": \"/Name\",\n        \"value\": \"New Category Name\"\n    }\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/categories/4435c0fb-598f-4121-ea01-08dc3d0b31fb",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"categories",
+								"4435c0fb-598f-4121-ea01-08dc3d0b31fb"
 							]
 						}
 					},
@@ -628,7 +711,13 @@
 					"name": "Patch Category Multiple Properties",
 					"request": {
 						"method": "PATCH",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json-patch+json",
+								"type": "text"
+							}
+						],
 						"body": {
 							"mode": "raw",
 							"raw": "[\n    {\n        \"op\": \"replace\",\n        \"path\": \"/Name\",\n        \"value\": \"New Category Name\"\n    },\n    {\n        \"op\": \"replace\",\n        \"path\": \"/Description\",\n        \"value\": \"New Category Description\"\n    }\n]",
@@ -639,13 +728,13 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/categories/1",
+							"raw": "{{base_url}}/categories/4435c0fb-598f-4121-ea01-08dc3d0b31fb",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"categories",
-								"1"
+								"4435c0fb-598f-4121-ea01-08dc3d0b31fb"
 							]
 						}
 					},
@@ -657,13 +746,13 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/categories/1",
+							"raw": "{{base_url}}/categories/4435c0fb-598f-4121-ea01-08dc3d0b31fb",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"categories",
-								"1"
+								"4435c0fb-598f-4121-ea01-08dc3d0b31fb"
 							]
 						}
 					},
