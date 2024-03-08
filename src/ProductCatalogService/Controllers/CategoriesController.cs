@@ -102,6 +102,14 @@ public class CategoriesController : ControllerBase
       return BadRequest(ModelState);
     }
 
+    // Get the category from the repository
+    var existingCategory = await repository.GetCategory(id);
+    if (existingCategory == null)
+    {
+      logger.LogError($"Category with id: {id} not found");
+      return NotFound();
+    }
+
     // Map the model to the entity
     var category = new Category
     {
@@ -181,8 +189,15 @@ public class CategoriesController : ControllerBase
     // Check if the Category Guid is valid
     ValidateGuid(id);
 
-    await repository.DeleteCategory(id);
+    // Get the category from the repository
+    var category = await repository.GetCategory(id);
+    if (category == null)
+    {
+      logger.LogError($"Category with id: {id} not found");
+      return NotFound();
+    }
 
+    await repository.DeleteCategory(id);
     return NoContent();
   }
 
