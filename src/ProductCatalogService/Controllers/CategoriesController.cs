@@ -10,6 +10,7 @@ public class CategoriesController : ControllerBase
 {
   private readonly ILogger<CategoriesController> logger;
   private readonly ICategoryRepository repository;
+  int MAX_PAGE_SIZE = 10;
 
   public CategoriesController(ICategoryRepository repository, ILogger<CategoriesController> logger)
   {
@@ -18,11 +19,21 @@ public class CategoriesController : ControllerBase
   }
 
   [HttpGet]
-  public async Task<ActionResult<IEnumerable<CategoryModel>>> GetCategories([FromQuery] string? nameLike, [FromQuery] bool includeProducts = false)
+  public async Task<ActionResult<IEnumerable<CategoryModel>>> GetCategories(
+    [FromQuery] string? nameLike, 
+    [FromQuery] bool includeProducts = false,
+    [FromQuery] int pageNumber = 1,
+    [FromQuery] int pageSize = 10)
   {
     logger.LogInformation("Getting all categories");
 
-    var categories = await repository.GetCategories(nameLike, includeProducts);
+    // If user wants to get more than 10 items, set the MAX_PAGE_SIZE to the requested pageSize
+    if (pageSize > MAX_PAGE_SIZE)
+    {
+      MAX_PAGE_SIZE = pageSize;
+    }
+
+    var categories = await repository.GetCategories(nameLike, includeProducts, pageNumber, pageSize);
 
     var categoryModels = categories.Select(category => new CategoryModel
     {

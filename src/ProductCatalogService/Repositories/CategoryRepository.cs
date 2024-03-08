@@ -45,7 +45,8 @@ public class CategoryRepository : ICategoryRepository
     }
   }
 
-  public async Task<IEnumerable<Category>> GetCategories(string? nameLike, bool includeProducts = false)
+  public async Task<IEnumerable<Category>> GetCategories(string? nameLike, bool includeProducts = false, 
+    int pageNumber = 1, int pageSize = 10)
   {
     try
     {
@@ -60,6 +61,9 @@ public class CategoryRepository : ICategoryRepository
       {
         query = query.Include(c => c.Products);
       }
+
+      query = query.Skip((pageNumber - 1) * pageSize).Take(pageSize);
+
       return await query.ToListAsync();
     }
     catch (DbUpdateException ex)
