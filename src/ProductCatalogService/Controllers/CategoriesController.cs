@@ -18,11 +18,11 @@ public class CategoriesController : ControllerBase
   }
 
   [HttpGet]
-  public async Task<ActionResult<IEnumerable<CategoryModel>>> GetCategories([FromQuery] bool includeProducts = false)
+  public async Task<ActionResult<IEnumerable<CategoryModel>>> GetCategories([FromQuery] string? nameLike, [FromQuery] bool includeProducts = false)
   {
-
     logger.LogInformation("Getting all categories");
-    var categories = await repository.GetCategories(includeProducts);
+
+    var categories = await repository.GetCategories(nameLike, includeProducts);
 
     var categoryModels = categories.Select(category => new CategoryModel
     {

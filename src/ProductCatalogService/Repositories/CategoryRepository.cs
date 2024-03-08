@@ -45,11 +45,17 @@ public class CategoryRepository : ICategoryRepository
     }
   }
 
-  public async Task<IEnumerable<Category>> GetCategories(bool includeProducts = false)
+  public async Task<IEnumerable<Category>> GetCategories(string? nameLike, bool includeProducts = false)
   {
     try
     {
       IQueryable<Category> query = context.Categories;
+
+      if (!string.IsNullOrWhiteSpace(nameLike))
+      {
+        query = query.Where(c => c.Name.Contains(nameLike, StringComparison.InvariantCultureIgnoreCase));
+      }
+
       if (includeProducts)
       {
         query = query.Include(c => c.Products);

@@ -3,7 +3,7 @@
 namespace ProductCatalogService.Repositories;
 public interface ICategoryRepository
 {
-  Task<IEnumerable<Category>> GetCategories(bool includeProducts = false);
+  Task<IEnumerable<Category>> GetCategories(string? nameLike, bool includeProducts = false);
   Task<Category?> GetCategory(Guid id);
   Task AddCategory(Category category);
   Task UpdateCategory(Guid id, Category category);
