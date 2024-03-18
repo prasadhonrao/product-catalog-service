@@ -1,0 +1,75 @@
+{
+    "_id": ObjectId("..."),        // MongoDB-generated unique identifier
+    "username": "john_doe",        // Customer's chosen username for login
+    "password": "hashed_password", // Encrypted password for account access
+    "email": "john.doe@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "phone": "+1234567890",
+    "shippingAddress": {
+      "street": "123 Main St",
+      "city": "Cityville",
+      "state": "State",
+      "postalCode": "12345",
+      "country": "Country"
+    },
+    "billingAddress": {
+      "street": "456 Billing St",
+      "city": "Cityville",
+      "state": "State",
+      "postalCode": "54321",
+      "country": "Country"
+    },
+    "registrationDate": ISODate("2024-01-23T12:00:00Z"),
+    "lastLogin": ISODate("2024-01-24T08:30:00Z"),
+    "languagePreference": "en",
+    "currencyPreference": "USD",
+    "communicationOptIns": {
+      "email": true,
+      "sms": false
+    },
+    "orderHistory": [
+      {
+        "orderId": ObjectId("..."),
+        "products": [
+          {
+            "productId": ObjectId("..."),
+            "name": "Product Name",
+            "quantity": 2,
+            "price": 29.99
+          },
+          // ... other product details
+        ],
+        "date": ISODate("2024-01-22T18:45:00Z"),
+        "status": "Shipped"
+      },
+      // ... other order details
+    ],
+    "wishlist": [
+      {
+        "productId": ObjectId("..."),
+        "name": "Wishlist Product",
+        "price": 49.99
+      },
+      // ... other wishlist items
+    ],
+    "paymentMethods": [
+      {
+        "type": "Credit Card",
+        "lastFourDigits": "1234",
+        "expirationDate": "12/25",
+        // ... other payment details
+      },
+      // ... other stored payment methods
+    ],
+    "twoFactorEnabled": true,
+    "securityQuestions": [
+      {
+        "question": "What is your favorite color?",
+        "answer": "Blue"
+      },
+      // ... other security questions
+    ],
+    "profilePictureUrl": "https://example.com/profile-picture.jpg"
+  }
+  
