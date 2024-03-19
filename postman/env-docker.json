@@ -1,0 +1,33 @@
+{
+	"id": "5c71e9dc-900f-46b1-92ac-2a675acee467",
+	"name": "Docker",
+	"values": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "customerPort",
+			"value": "8080",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "productPort",
+			"value": "8081",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "orderPort",
+			"value": "8082",
+			"type": "default",
+			"enabled": true
+		}
+	],
+	"_postman_variable_scope": "environment",
+	"_postman_exported_at": "2024-03-18T23:59:42.991Z",
+	"_postman_exported_using": "Postman/10.24.3"
+}

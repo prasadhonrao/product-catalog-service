@@ -1,0 +1,39 @@
+{
+	"id": "e7c92cf5-3fca-43bf-b17b-ba02271e6690",
+	"name": "Local",
+	"values": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "customerPort",
+			"value": "5001",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "productPort",
+			"value": "3000",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "orderPort",
+			"value": "7001",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "userPort",
+			"value": "6001",
+			"type": "default",
+			"enabled": true
+		}
+	],
+	"_postman_variable_scope": "environment",
+	"_postman_exported_at": "2024-03-18T23:59:21.421Z",
+	"_postman_exported_using": "Postman/10.24.3"
+}
